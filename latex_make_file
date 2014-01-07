@@ -1,0 +1,73 @@
+# File name
+BASE    = la
+
+# How to view output files
+VIEWER  = zathura
+
+# Files used for diagrams (umlet file)
+uxffiles=$(wildcard fig/*.uxf)
+
+# Those files, with the correct extension for LaTeX
+figures=$(patsubst %.uxf,%.eps,${uxffiles})
+
+.SUFFIXES:
+.SUFFIXES:.ps .pdf .dvi .tex .uxf .eps .toc .lof .lot
+
+.PHONY: default all dvi ps pdf eps view view-ps view-pdf clean mrproper
+
+# What should 'make' run by default ?
+default: ps
+
+# build everything
+all: ps pdf view-ps
+
+# The output files
+dvi: ${BASE}.dvi
+ps:  ${BASE}.ps
+pdf: ${BASE}.pdf
+eps: ${figures}
+
+# Default view
+view: view-ps
+
+# --- DVI ---------------------------------------
+${BASE}.dvi: ${figures} ${BASE}.toc ${BASE}.tex
+	     @echo "TEX  ${BASE}.tex"
+	     @latex ${BASE}.tex >/dev/null
+
+# --- TOC ---------------------------------------
+${BASE}.toc: ${figures} ${BASE}.tex
+	     @echo "TOC  ${BASE}.tex"
+	     @latex -draftmode ${BASE}.tex >/dev/null
+
+# --- EPS ---------------------------------
+.uxf.eps:
+	@echo "EPS  $<"
+	@umlet -action=convert -format=eps -filename=$< >/dev/null
+
+# --- PS ----------------------------------------
+.dvi.ps:
+	@echo "PS   $<"
+	@dvips -q $<
+
+# --- PDF ---------------------------------------
+.dvi.pdf:
+	@echo "PDF  $<"
+	@dvipdf -q $<
+
+# --- OTHER -------------------------------------
+view-%: ${BASE}.%
+	${VIEWER} $<
+
+clean:
+	rm -f *.aux
+	rm -f *.log
+	rm -f *.dvi
+	rm -f *.lof
+	rm -f *.lot
+	rm -f *.toc
+
+mrproper: clean
+	  rm -f fig/*.eps
+	  rm -f *.pdf
+	  rm -f *.ps 
