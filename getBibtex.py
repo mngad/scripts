@@ -7,11 +7,11 @@ import sys, getopt
 from os import listdir
 from os.path import isfile, join
 
-def getDir():
+def getDir(): #get dir of biblio.bib
     biblioDir = input('Input the biblio.bib dir: ')
     os.chdir(biblioDir)
 
-def genHeader():
+def genHeader(): #generate rnadom google id to show the bibtex link on the search results of google scholar
     rand_str = str(random.random()).encode('utf8')
     google_id = hashlib.md5(rand_str).hexdigest()[:16]
     header = {'User-Agent': 'Mozilla/5.0','Cookie': 'GSP=ID=%s:CF=4' % google_id}
