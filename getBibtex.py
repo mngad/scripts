@@ -49,7 +49,7 @@ def main(argv):
         numBibs = 0
         for a in soup.find_all('a', href=True):
             if ".bib" in a['href']:
-                numBibs = numBibs +1
+                numBibs = numBibs +1  #check to see if multiple search results exist, refine search is not == 1
         if numBibs == 1:
             for a in soup.find_all('a', href=True):
                 if ".bib" in a['href']:
@@ -62,7 +62,7 @@ def main(argv):
                     print(visible_text)
                     bibFile.write(visible_text)
         else:
-            print('More than one paper...')
+            print('More than one search result returned, refine the search criteria')
         bibFile.close()
 
 if __name__ == "__main__":
