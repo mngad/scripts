@@ -1,7 +1,7 @@
 #!python3
 #fraun
-
-import requests, os, bs4, random, hashlib
+import bs4
+import requests, os, random, hashlib
 import os
 import sys, getopt
 from os import listdir
@@ -17,10 +17,24 @@ def genHeader(): #generate rnadom google id to show the bibtex link on the searc
     header = {'User-Agent': 'Mozilla/5.0','Cookie': 'GSP=ID=%s:CF=4' % google_id}
     return header
 
+def getSoup(paperToSearch,header):
+    scholUrl = 'https://scholar.google.co.uk/scholar?hl=en&q='
+    url = scholUrl + paperToSearch
+    res = requests.get(url, headers=header)
+    res.raise_for_status
+    soup = bs4.BeautifulSoup(res.text, "html.parser")
+    return soup
+    
+def getNumResults(soup):
+    numBibs = 0
+    for a in soup.find_all('a', href=True):
+            if ".bib" in a['href']:
+                numBibs = numBibs +1  #check to see if multiple search results exist, refine search is not == 1
+    return numBibs
 
 
 def main(argv):
-
+    multbibs=False 
     try:
         opts, args = getopt.getopt(argv,"hmo:")
     except getopt.GetoptError:
@@ -34,22 +48,18 @@ def main(argv):
             multbibs =True
         if opt == '-o':
             os.chdir(arg)
-            
+          
     while multbibs:
         bibFile = open('biblio.bib', 'a')
         # fake google id (looks like it is a 16 elements hex)
         header=genHeader()
-        scholUrl = 'https://scholar.google.co.uk/scholar?hl=en&q='
         paperToSearch = input('Enter the paper to seach for: ')
         if paperToSearch == 'q':break
-        url = scholUrl + paperToSearch
-        res = requests.get(url, headers=header)
-        res.raise_for_status
-        soup = bs4.BeautifulSoup(res.text, "html.parser")
-        numBibs = 0
-        for a in soup.find_all('a', href=True):
-            if ".bib" in a['href']:
-                numBibs = numBibs +1  #check to see if multiple search results exist, refine search is not == 1
+        
+        soup=getSoup(paperToSearch,header)
+        numBibs=getNumResults(soup)
+
+
         if numBibs == 1:
             for a in soup.find_all('a', href=True):
                 if ".bib" in a['href']:
